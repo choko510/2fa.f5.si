@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>2FAコード生成</title>
+    <link rel="stylesheet" href="https://unpkg.com/tailwindcss@2.2.7/dist/tailwind.min.css">
+    <script src="https://unpkg.com/@otplib/preset-browser@^12.0.0/buffer.js"></script>
+    <script src="https://unpkg.com/@otplib/preset-browser@^12.0.0/index.js"></script>
+    <link rel="icon" href="static/favicon.ico">
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col justify-center items-center">
+    <div class="bg-white rounded-lg shadow-md p-8 max-w-lg w-full">
+        <form class="mb-6">
+            <label class="block font-semibold mb-2" for="secret">2FAコードを入力してください</label>
+            <input type="text" id="secret" class="form-input w-full mb-4" placeholder="XXXXXXXXXXXXXXX">
+            <div class="flex">
+                <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    onclick="generate2FACode()">2FAコードを生成</button>
+                <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+                    onclick="pasteData()">ペースト</button>
+                <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2"
+                    onclick="copyData()" id="copy_button" disabled>コピー</button>
+
+            </div>
+        </form>
+        <div id="result"></div>
+    </div>
+    <script>
+        function generate2FACode() {
+            try {
+                // シークレットキーを取得
+                const secret = document.getElementById("secret").value.trim();
+                // otplibライブラリを使用して2FAコードを生成
+                const token = otplib.authenticator.generate(secret);
+
+                // 結果を表示
+                document.getElementById("result").innerHTML = `<div class="mb-2"><span class="font-semibold"> ${token}</span></div>`;
+
+                // コピーボタンを有効化
+                document.getElementById("copy_button").disabled = false;
+            } catch (error) {
+                alert("無効なシークレットキーです。もう一度確認してください。");
+                console.error(error);
+            }
+        }
+
+        function copyData() {
+            // 結果のテキストを取得  
+            const resultText = document.getElementById("result").innerText;
+
+            // 新しいテキストエリアを作成して、結果のテキストを設定
+            const textarea = document.createElement("textarea");
+            textarea.value = resultText;
+
+            // テキストエリアをDOMに追加
+            document.body.appendChild(textarea);
+
+            // テキストエリアの選択範囲を設定
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+
+            // テキストエリアの内容をクリップボードにコピー  
+            document.execCommand("copy");
+
+            // テキストエリアを削除
+            document.body.removeChild(textarea);
+        }
+
+        async function pasteData() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById("secret").value = text;
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+            }
+        }
+    </script>
+</body>
+
+</html>
